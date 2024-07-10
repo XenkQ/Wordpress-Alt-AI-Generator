@@ -6,4 +6,4 @@ When you manage wordpress website and people are adding images without alt text 
 
 ## How to use this application
 1. Download ollama for running language models locally: [ollama](https://github.com/ollama/ollama/tree/main)
-2. Pull [llava](https://ollama.com/library/llava) for creating text from image and [bielik](https://ollama.com/mwiewior/bielik) for polish translation.
+2. Pull language models: [llava](https://ollama.com/library/llava) for creating text from image and [bielik](https://ollama.com/mwiewior/bielik) for polish translation.
