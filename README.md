@@ -6,3 +6,7 @@ When you manage wordpress website and people are adding images without alt text 
 ## How to use this application
 1. Download ollama for running language models locally: [ollama](https://github.com/ollama/ollama/tree/main)
 2. Pull language models: [llava](https://ollama.com/library/llava) for creating text from image and [bielik](https://ollama.com/mwiewior/bielik) for polish translation.
+3. Add extension [alt-manager](https://pl.wordpress.org/plugins/alt-manager/) to wordpress that can update images after alt text has changed.
+4. In extension options set all images setting to "Image Alt".
+5. Fill your desired connection method credentials in "credentials.json" file.
+6. Open console and run python script **py main.py**
