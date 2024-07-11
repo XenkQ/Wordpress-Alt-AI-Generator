@@ -10,3 +10,6 @@ When you manage wordpress website and people are adding images without alt text 
 4. In extension options set all images setting to **"Image Alt"**.
 5. Fill your desired connection method credentials in "credentials.json" file.
 6. Open console and run python script **py main.py**
+
+## TODO
+Add connection throught wordpress api
