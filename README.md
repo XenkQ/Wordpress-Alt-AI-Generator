@@ -12,4 +12,4 @@ When you manage wordpress website and people are adding images without alt text 
 6. Instal dependencies and run python script
 
 ## TODO
-Add connection throught wordpress api
+Add connection through wordpress api
