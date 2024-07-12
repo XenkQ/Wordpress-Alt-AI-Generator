@@ -13,7 +13,7 @@ if use_empty_alt == 'yes' or use_empty_alt == 'y':
 
 if mode == '0':
     print(f"Found {len(rows_to_change)} images without alt")
-    print("-----------------------Generation Starts-----------------------")
+    print("-----------------------Generation Starts-----------------------\n")
 
     for i, row in enumerate(rows_to_change):
         model_response_text = models_interactions.get_image_alt_from_llava_model(get_image_in_base64_text_from_url(row[1]))
@@ -24,7 +24,7 @@ if mode == '0':
 
         sql_operations.change_data(row[0], model_response_text_translated, sql_operations.ChangeDataOperations.UPDATE_EXISTING_IMAGE_ALT_DATA)
 
-        print(f"{i + 1} Image: {row[1]}\nAlt from image in english: {model_response_text}\nAlt polish translation: {model_response_text_translated}")
+        print(f"{i + 1} Image: {row[1]}\nAlt from image in english: {model_response_text}\nAlt polish translation: {model_response_text_translated}\n")
 
     print("-----------------------Generation Ends-----------------------")
 
