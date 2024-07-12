@@ -1,4 +1,5 @@
 import requests
+import logger
 
 OLLAMA_SERVER_API_END_POINT = "http://localhost:11434/api/generate" #default local ollama api endpoint
 
@@ -20,6 +21,15 @@ bielik_params = {
     'model': 'mwiewior/bielik',
     'stream': False,
 }
+
+
+def can_comminicate_with_ollama_api_end() -> bool:
+    response = requests.get(OLLAMA_SERVER_API_END_POINT)
+
+    if response.status_code > 499 and response.status_code <= 599:
+        return False
+
+    return True
 
 
 def get_image_alt_from_llava_model(image_in_base64: str):

@@ -1,5 +1,4 @@
 import json
-
 import mysql.connector
 import sql_queries
 from enum import Enum
@@ -50,3 +49,32 @@ def change_data(post_id: int, alt_text: str, operation: ChangeDataOperations):
 
     cursor.close()
     connection.close()
+
+def can_connect_to_database() -> bool:
+    connection = mysql.connector.connect(**sql_server_params)
+    status = connection.is_connected()
+    connection.close()
+
+    return status
+
+#TODO: Fix error rise
+def can_login_with_credentials() -> bool:
+    if not can_connect_to_database():
+        return False
+
+    try:
+        connection = mysql.connector.connect(**sql_server_params)
+        cursor = connection.cursor()
+
+        query = "SELECT CURRENT_TIMESTAMP;" #test query
+        cursor.execute(query, (sql_server_params['user'], sql_server_params['password']))
+
+        result = cursor.fetchone()
+
+        if not result:
+            return False
+
+    except Exception:
+        return False
+
+    return True
