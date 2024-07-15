@@ -1,9 +1,11 @@
 import requests
-import logger
 
-OLLAMA_SERVER_API_END_POINT = "http://localhost:11434/api/generate" #default local ollama api endpoint
+OLLAMA_SERVER_API_END_POINT = "http://10.0.3.8:11434/api/generate" #default local ollama api endpoint
 
-PROMPT_CREATE_TEXT_FROM_IMAGE = "create short header from image, max 10 words"
+PROMPT_CREATE_TEXT_FROM_IMAGE = """
+Generate a vivid and detailed image header, up to 10 words, that clearly describes the main elements and essence of the image,
+ensuring it provides enough context for someone who is visually impaired to visualize the scene.
+"""
 
 PROMPT_TRANSLATE_TEXT_TO_POLISH = """
 Twoje zadanie to tłumaczenie textu. Wysyłaj tylko przetłumaczony tekst na język polski bez żadnego dodatkowego tekstu.
@@ -11,7 +13,7 @@ Twoje zadanie to tłumaczenie textu. Wysyłaj tylko przetłumaczony tekst na ję
 """
 
 llava_params = {
-    'model': 'llava:7b',
+    'model': 'llava:34b',
     'prompt': PROMPT_CREATE_TEXT_FROM_IMAGE,
     'stream': False,
     'images': []
