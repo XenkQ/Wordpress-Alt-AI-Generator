@@ -28,7 +28,7 @@ bielik_params = {
 def can_comminicate_with_ollama_api_end() -> bool:
     response = requests.get(OLLAMA_SERVER_API_END_POINT)
 
-    if response.status_code > 499 and response.status_code <= 599:
+    if response.status_code >= 500 and response.status_code <= 599:
         return False
 
     return True

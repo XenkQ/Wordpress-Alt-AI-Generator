@@ -18,44 +18,14 @@ with open('credentials.json', 'r') as file:
     data = json.loads(file.read())
     sql_server_params = data['database_mode_credentials']
 
-def get_data(operation: GetDataOperations) -> list:
-    connection = mysql.connector.connect(**sql_server_params)
-    cursor = connection.cursor()
-
-    query: str
-    if operation == GetDataOperations.IMAGE_IDS_LINKS_WITHOUT_ALT:
-        query = sql_queries.SELECT_IMAGE_IDS_LINKS_WITHOUT_ALT
-    elif operation == GetDataOperations.IMAGE_IDS_LINKS_WITH_EXISTING_EMPTY_ALT_ROW:
-        query = sql_queries.SELECT_IMAGE_IDS_LINKS_WITH_EXISTING_EMPTY_ALT_ROW
-
-    cursor.execute(query)
-    result = cursor.fetchall()
-
-    cursor.close()
-    connection.close()
-
-    return result
-
-def change_data(post_id: int, alt_text: str, operation: ChangeDataOperations):
-    connection = mysql.connector.connect(**sql_server_params)
-    cursor = connection.cursor()
-
-    if operation == ChangeDataOperations.INSERT_ROW_WITH_IMAGE_ALT_DATA:
-        cursor.execute(sql_queries.INSERT_IMAGE_ALT_DATA, (post_id, alt_text))
-    elif operation == ChangeDataOperations.UPDATE_EXISTING_IMAGE_ALT_DATA:
-        cursor.execute(sql_queries.UPDATE_IMAGE_ALT_DATA, (alt_text, post_id))
-
-    connection.commit()
-
-    cursor.close()
-    connection.close()
-
 def can_connect_to_database() -> bool:
-    connection = mysql.connector.connect(**sql_server_params)
-    status = connection.is_connected()
-    connection.close()
+    try:
+        connection = mysql.connector.connect(**sql_server_params)
+        connection.close()
+        return connection.is_connected()
+    finally:
+        return False
 
-    return status
 
 #TODO: Fix error rise
 def can_login_with_credentials() -> bool:
@@ -78,3 +48,43 @@ def can_login_with_credentials() -> bool:
         return False
 
     return True
+
+
+def get_data(operation: GetDataOperations) -> list:
+    connection = mysql.connector.connect(**sql_server_params)
+    cursor = connection.cursor()
+
+    query = None
+    result = None
+
+    if operation == GetDataOperations.IMAGE_IDS_LINKS_WITHOUT_ALT:
+        query = sql_queries.SELECT_IMAGE_IDS_LINKS_WITHOUT_ALT
+    elif operation == GetDataOperations.IMAGE_IDS_LINKS_WITH_EXISTING_EMPTY_ALT_ROW:
+        query = sql_queries.SELECT_IMAGE_IDS_LINKS_WITH_EXISTING_EMPTY_ALT_ROW
+
+    if query:
+        cursor.execute(query)
+        result = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    if result:
+        return result
+    else:
+        return []
+
+
+def change_data(post_id: int, alt_text: str, operation: ChangeDataOperations):
+    connection = mysql.connector.connect(**sql_server_params)
+    cursor = connection.cursor()
+
+    if operation == ChangeDataOperations.INSERT_ROW_WITH_IMAGE_ALT_DATA:
+        cursor.execute(sql_queries.INSERT_IMAGE_ALT_DATA, (post_id, alt_text))
+    elif operation == ChangeDataOperations.UPDATE_EXISTING_IMAGE_ALT_DATA:
+        cursor.execute(sql_queries.UPDATE_IMAGE_ALT_DATA, (alt_text, post_id))
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
