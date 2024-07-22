@@ -5,6 +5,7 @@ import sql_structure_queries
 from sql_table_data_queries import SQL_Table_Data_Queries
 from enum import Enum
 
+
 class GetDataOperations(Enum):
     IMAGE_IDS_LINKS_WITHOUT_ALT = 0,
     IMAGE_IDS_LINKS_WITH_EXISTING_EMPTY_ALT_ROW = 1,
@@ -15,54 +16,58 @@ class ChangeDataOperations(Enum):
     INSERT_ROW_WITH_IMAGE_ALT_DATA = 0,
     UPDATE_EXISTING_IMAGE_ALT_DATA = 1
 
+
 class DataBaseOperations(Enum):
     GET_WORDPRESS_TABLES_PREFIX = 0
 
+
 class SQL_Operations:
+    with open('credentials.json', 'r') as file:
+        data = json.loads(file.read())
+        __sql_server_params = data['database_mode_credentials']
+
     def __init__(self):
-        with open('credentials.json', 'r') as file:
-            data = json.loads(file.read())
-            self.sql_server_params = data['database_mode_credentials']
-            prefix = self.get_tables_prefix()
-            self.queries = SQL_Table_Data_Queries(prefix)
-            print(prefix)
+        self.queries = SQL_Table_Data_Queries(self.get_tables_prefix())
 
     def get_tables_prefix(self) -> str:
-        if self.can_connect_to_database() and self.can_login_with_credentials():
-            return self.get_data(GetDataOperations.WORDPRESS_TABLES_PREFIX)[0][0] + '_'
+        if self.can_database_user_insert_and_update():
+            return self.get_data(GetDataOperations.WORDPRESS_TABLES_PREFIX)[0][0] + "_"
 
-    def can_connect_to_database(self) -> bool:
+        return ''
+
+    @classmethod
+    def can_connect_to_database(cls) -> bool:
+        result = False
+
         try:
-            connection = mysql.connector.connect(**self.sql_server_params)
+            connection = mysql.connector.connect(**cls.__sql_server_params)
+            result = connection.is_connected()
             connection.close()
-            return connection.is_connected()
-        finally:
-            return False
-
-    # TODO: Fix error rise
-    def can_login_with_credentials(self) -> bool:
-        if not self.can_connect_to_database():
-            return False
-
-        try:
-            connection = mysql.connector.connect(**self.sql_server_params)
-            cursor = connection.cursor()
-
-            query = "SELECT CURRENT_TIMESTAMP;"  # test query
-            cursor.execute(query, (self.sql_server_params['user'], self.sql_server_params['password']))
-
-            result = cursor.fetchone()
-
-            if not result:
-                return False
-
         except Exception:
+            pass
+
+        return result
+
+    @classmethod
+    def can_database_user_insert_and_update(cls) -> bool:
+        if not cls.can_connect_to_database():
             return False
 
-        return True
+        connection = mysql.connector.connect(**cls.__sql_server_params)
+        cursor = connection.cursor()
+
+        query = sql_structure_queries.SELECT_CURRENT_USER_PRIVILEGES
+        cursor.execute(query)
+
+        result = cursor.fetchall()[1]
+
+        if 'INSERT' in result[0] and 'UPDATE' in result[0]:
+            return True
+
+        return False
 
     def get_data(self, operation: GetDataOperations) -> list:
-        connection = mysql.connector.connect(**self.sql_server_params)
+        connection = mysql.connector.connect(**self.__sql_server_params)
         cursor = connection.cursor()
 
         query = None
@@ -74,7 +79,6 @@ class SQL_Operations:
             query = self.queries.SELECT_IMAGE_IDS_LINKS_WITH_EXISTING_EMPTY_ALT_ROW
         elif operation == GetDataOperations.WORDPRESS_TABLES_PREFIX:
             query = sql_structure_queries.SELECT_TABLE_PREFIX
-
 
         if query:
             cursor.execute(query)
@@ -89,11 +93,11 @@ class SQL_Operations:
             return []
 
     def change_data(self, post_id: int, alt_text: str, operation: ChangeDataOperations):
-        connection = mysql.connector.connect(**self.sql_server_params)
+        connection = mysql.connector.connect(**self.__sql_server_params)
         cursor = connection.cursor()
 
         if operation == ChangeDataOperations.INSERT_ROW_WITH_IMAGE_ALT_DATA:
-            cursor.execute(self.queries.insert_image_alt_data, (post_id, alt_text))
+            cursor.execute(self.queries.INSERT_IMAGE_ALT_DATA, (post_id, alt_text))
         elif operation == ChangeDataOperations.UPDATE_EXISTING_IMAGE_ALT_DATA:
             cursor.execute(self.queries.UPDATE_IMAGE_ALT_DATA, (alt_text, post_id))
 
@@ -101,4 +105,3 @@ class SQL_Operations:
 
         cursor.close()
         connection.close()
-

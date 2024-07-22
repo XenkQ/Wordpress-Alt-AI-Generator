@@ -28,18 +28,18 @@ if not models_interactions.can_comminicate_with_ollama_api_end():
 __rows_to_change = []
 __use_empty_alt = __use_empty_alt_user_reply in _YES_VARIANTS
 __add_prefix_to_generated_alt = __add_prefix_to_generated_alt_user_reply in _YES_VARIANTS
-__sql_operations = SQL_Operations()
 
 if __mode == '0':
-    if not __sql_operations.can_connect_to_database():
+    if not SQL_Operations.can_connect_to_database():
         print('\033[91m' + "Can't connect to database" + '\033[0m')
         logger.write_log("[Database Connection Error]", "Can't connect to database")
         exit(0)
-    elif not __sql_operations.can_login_with_credentials():
+    elif not SQL_Operations.can_database_user_insert_and_update():
         print('\033[91m' + "Can't use database with provided credentials" + '\033[0m')
         logger.write_log("[Database Credentials Error]", "Can't use database with provided credentials")
         exit(0)
 
+    __sql_operations = SQL_Operations()
     __rows_to_change = __sql_operations.get_data(GetDataOperations.IMAGE_IDS_LINKS_WITHOUT_ALT)
 
     if __use_empty_alt:
@@ -49,8 +49,6 @@ elif __mode == '1':
         print('\033[91m' + "Can't use wordpress with provided credentials" + '\033[0m')
         logger.write_log("[Database Credentials Error]", "Can't use wordpress with provided credentials")
         exit(0)
-
-    #TODO: Wordpress 
 
 if len(__rows_to_change) == 0:
     print('\033[91m' + "Images to alter not found" + '\033[0m')
@@ -63,8 +61,15 @@ print(f"Found {len(__rows_to_change)} images without alt")
 print("-----------------------Generation Starts-----------------------\n")
 
 print("---Alt text generation---")
-for row in enumerate(__rows_to_change):
-    model_response_text = models_interactions.get_image_alt_from_llava_model(get_image_in_base64_text_from_url(row[1]))
+for row in __rows_to_change:
+    image = get_image_in_base64_text_from_url(row[1])
+
+    if image == '':
+        logger.write_log(f"[{row[0]} Image Error] ", f"Image not found: {row[1]}")
+        print('\033[91m' + f"[{row[0]} Image Error] Image not found: {row[1]}" + '\033[0m')
+        continue
+
+    model_response_text = models_interactions.get_image_alt_from_llava_model(image)
 
     model_response_text.title()
 
@@ -75,7 +80,7 @@ for row in enumerate(__rows_to_change):
     alt_results[row[0]] = [row[1], model_response_text]
 
 print("\n---Alt translation---")
-for i, key in enumerate(alt_results):
+for key in alt_results:
     model_response_text_translated = models_interactions.translate_text_to_polish_with_bielik_model(
         alt_results[key][1]).title()
 
@@ -92,7 +97,7 @@ for i, key in enumerate(alt_results):
     elif __mode == '1':
         wordpress_operations.update_image_alt(key, model_response_text_translated)
 
-    print(f"[{i + 1} Image] {alt_results[key][0]}\n[Alt in english] {alt_results[key][1]}\n"
+    print(f"[{key} Image] {alt_results[key][0]}\n[Alt in english] {alt_results[key][1]}\n"
           f"[Alt in polish] {model_response_text_translated}\n")
 
 print("-----------------------Generation Ends-----------------------")
